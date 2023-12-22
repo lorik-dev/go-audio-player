@@ -87,11 +87,14 @@ func printPlaybackOptions(playInstance Ctrl) {
 	fmt.Printf("\n")
 	switch playInstance.Paused {
 	case true:
-		fmt.Printf("| PAUSED |\n")
+		fmt.Printf("| PAUSED |")
 	}
 	switch playInstance.Loop {
 	case true:
-		fmt.Printf("| LOOP |")
+		if !playInstance.Paused {
+			fmt.Print("|")
+		}
+		fmt.Printf(" LOOP |")
 	}
 }
 
