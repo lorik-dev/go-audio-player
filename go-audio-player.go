@@ -58,10 +58,18 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 
 	switch playInstance.fileExtension {
 	case ".wav":
-		fmt.Printf("%s\n%s\n", metadataInstance.WavMetadata.Metadata.Title, metadataInstance.WavMetadata.Metadata.Artist)
+		if metadataInstance.WavMetadata.Metadata.Title == "" {
+			fmt.Printf("%s\n", playInstance.fileName)
+		} else {
+			fmt.Printf("%s\n%s\n", metadataInstance.WavMetadata.Metadata.Title, metadataInstance.WavMetadata.Metadata.Artist)
+		}
 		fmt.Printf("WAV %02dKHz/%02dbit", metadataInstance.WavMetadata.SampleRate/1000, metadataInstance.WavMetadata.BitDepth)
 	default:
-		fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Composer())
+		if metadataInstance.nonWavMetadata.Title() == "" {
+			fmt.Printf("%s\n", playInstance.fileName)
+		} else {
+			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Composer())
+		}
 		fmt.Printf("%s %02dKHz\n", metadataInstance.nonWavMetadata.FileType(), playInstance.Format.SampleRate/1000)
 	}
 	fmt.Print("\n\n")
