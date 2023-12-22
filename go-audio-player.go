@@ -16,6 +16,7 @@ import (
 )
 
 type Ctrl struct {
+	fileName string
 	Streamer beep.StreamSeekCloser
 	Format   beep.Format
 	Paused   bool
@@ -42,7 +43,7 @@ func returnPosition(playInstance Ctrl) (int, int, int) {
 func printPlaybackStatus(playInstance Ctrl) {
 	// Clear terminal
 	fmt.Print("\033[H\033[2J")
-
+	fmt.Println(playInstance.fileName + "\n")
 	// Retrieve playback position and print
 	hours, minutes, seconds := returnPosition(playInstance)
 	fmt.Printf("Time: %02d:%02d:%02d\n", hours, minutes, seconds)
@@ -64,10 +65,11 @@ func printPlaybackOptions(playInstance Ctrl) {
 	}
 }
 
-func readAudio(fileArg string) (beep.StreamSeekCloser, beep.Format) {
+func readAudio(fileArg string) (string, beep.StreamSeekCloser, beep.Format) {
 	file, fileErr := os.Open(fileArg)
 	check(fileErr)
 
+	fileName := filepath.Base(fileArg)
 	fileExtension := filepath.Ext(fileArg)
 
 	var streamerIn beep.StreamSeekCloser
@@ -86,7 +88,7 @@ func readAudio(fileArg string) (beep.StreamSeekCloser, beep.Format) {
 	}
 
 	check(decodeErr)
-	return streamerIn, formatIn
+	return fileName, streamerIn, formatIn
 }
 
 func playAudio(playInstance Ctrl) chan bool {
@@ -101,8 +103,9 @@ func playAudio(playInstance Ctrl) chan bool {
 }
 
 func startPlayback(argsWithProg []string, preLoop bool) (Ctrl, chan bool) {
-	streamerRead, formatRead := readAudio(argsWithProg[1])
+	fileNameRead, streamerRead, formatRead := readAudio(argsWithProg[1])
 	playInstance := new(Ctrl)
+	playInstance.fileName = fileNameRead
 	playInstance.Streamer = streamerRead
 	playInstance.Format = formatRead
 
