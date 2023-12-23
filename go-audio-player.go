@@ -54,9 +54,8 @@ func returnPosition(playInstance Ctrl) (int, int, int) {
 
 // Prints current playback, including time and options
 func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
-	// Clear terminal and hide cursor using ANSI escape codes
+	// Clear terminal using ANSI escape codes
 	fmt.Print("\033[H\033[2J")
-	fmt.Print("\033[?25l")
 
 	switch playInstance.fileExtension {
 	case ".wav":
