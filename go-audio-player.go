@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -53,8 +54,9 @@ func returnPosition(playInstance Ctrl) (int, int, int) {
 
 // Prints current playback, including time and options
 func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
-	// Clear terminal
+	// Clear terminal and hide cursor using ANSI escape codes
 	fmt.Print("\033[H\033[2J")
+	fmt.Print("\033[?25l")
 
 	switch playInstance.fileExtension {
 	case ".wav":
@@ -70,7 +72,7 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 		} else {
 			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Composer())
 		}
-		fmt.Printf("%s %02dKHz\n", metadataInstance.nonWavMetadata.FileType(), playInstance.Format.SampleRate/1000)
+		fmt.Printf("%s %02dKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), playInstance.Format.SampleRate/1000, playInstance.Format.Precision*8)
 	}
 	fmt.Print("\n\n")
 
@@ -239,6 +241,7 @@ stdinloop:
 				}
 			default:
 				if !playInstance.Paused {
+					io.WriteString(os.Stdin, "\n")
 					printPlaybackStatus(playInstance, metadataInstance)
 				}
 			}
