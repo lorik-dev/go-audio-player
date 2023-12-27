@@ -70,7 +70,8 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 		} else {
 			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist())
 		}
-		fmt.Printf("%s %02dKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), playInstance.Format.SampleRate/1000, playInstance.Format.Precision*8)
+		sampleFloat := float64(playInstance.Format.SampleRate) / 1000
+		fmt.Printf("%s %.1fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
 	}
 	fmt.Print("\n\n")
 
