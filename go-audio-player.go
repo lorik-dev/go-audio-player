@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -69,7 +68,7 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 		if metadataInstance.nonWavMetadata.Title() == "" {
 			fmt.Printf("%s\n", playInstance.fileName)
 		} else {
-			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Composer())
+			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist())
 		}
 		fmt.Printf("%s %02dKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), playInstance.Format.SampleRate/1000, playInstance.Format.Precision*8)
 	}
@@ -240,7 +239,6 @@ stdinloop:
 				}
 			default:
 				if !playInstance.Paused {
-					io.WriteString(os.Stdin, "\n")
 					printPlaybackStatus(playInstance, metadataInstance)
 				}
 			}
