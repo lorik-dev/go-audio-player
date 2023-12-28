@@ -71,7 +71,13 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist())
 		}
 		sampleFloat := float64(playInstance.Format.SampleRate) / 1000
-		fmt.Printf("%s %.1fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
+		// Display decimal if KHz value has a decimal value
+		if sampleFloat == float64(int(sampleFloat)) {
+			fmt.Printf("%s %.0fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
+
+		} else {
+			fmt.Printf("%s %.1fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
+		}
 	}
 	fmt.Print("\n\n")
 
