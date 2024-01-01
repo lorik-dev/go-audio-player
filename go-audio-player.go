@@ -61,12 +61,18 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 
 	switch playInstance.fileExtension {
 	case ".wav":
-		if metadataInstance.WavMetadata.Metadata.Title == "" {
+		if metadataInstance.WavMetadata.Metadata.Artist == "" {
 			fmt.Printf("%s\n", playInstance.fileName)
 		} else {
-			fmt.Printf("%s\n%s\n", metadataInstance.WavMetadata.Metadata.Title, metadataInstance.WavMetadata.Metadata.Artist)
+			fmt.Printf("%s\n%s • %s\n", metadataInstance.WavMetadata.Metadata.Title, metadataInstance.WavMetadata.Metadata.Artist, metadataInstance.WavMetadata.Metadata.Product)
 		}
-		fmt.Printf("WAV %02dKHz/%02dbit", metadataInstance.WavMetadata.SampleRate/1000, metadataInstance.WavMetadata.BitDepth)
+		sampleFloat := float64(playInstance.Format.SampleRate) / 1000
+		// Display decimal if KHz value has a decimal value
+		if sampleFloat == float64(int(sampleFloat)) {
+			fmt.Printf("WAV %.0fKHz/%02dbit", sampleFloat, playInstance.Format.Precision*8)
+		} else {
+			fmt.Printf("WAV %.1fKHz/%02dbit", sampleFloat, playInstance.Format.Precision*8)
+		}
 	case ".mp3":
 		if metadataInstance.nonWavMetadata.Title() == "" {
 			fmt.Printf("%s\n", playInstance.fileName)
@@ -83,7 +89,7 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 		if metadataInstance.nonWavMetadata.Title() == "" {
 			fmt.Printf("%s\n", playInstance.fileName)
 		} else {
-			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist())
+			fmt.Printf("%s\n%s • %s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist(), metadataInstance.nonWavMetadata.Album())
 		}
 		sampleFloat := float64(playInstance.Format.SampleRate) / 1000
 		// Display decimal if KHz value has a decimal value
@@ -200,6 +206,7 @@ func startPlayback(argsWithProg []string, preLoop bool) (Ctrl, metadata, chan bo
 		}
 	default:
 		metadataInstance.nonWavMetadata = readNonWavMetadata(*file)
+		// Use additional MP3 decoder for MP3 bitrate calculation
 		if fileExtension == ".mp3" {
 			var err error
 			metadataInstance.mp3Decoder, err = mp3fdecoder.NewDecoder(file)
