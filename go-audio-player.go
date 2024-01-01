@@ -18,11 +18,13 @@ import (
 	"github.com/gopxl/beep/wav"
 
 	wavmeta "github.com/go-audio/wav"
+	mp3fdecoder "github.com/hajimehoshi/go-mp3"
 )
 
 type Ctrl struct {
 	fileName      string
 	fileExtension string
+	Size          int64
 	metadata      tag.Metadata
 	Streamer      beep.StreamSeekCloser
 	Format        beep.Format
@@ -32,6 +34,7 @@ type Ctrl struct {
 
 type metadata struct {
 	nonWavMetadata tag.Metadata
+	mp3Decoder     *mp3fdecoder.Decoder
 	WavMetadata    *wavmeta.Decoder
 }
 
@@ -64,6 +67,18 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 			fmt.Printf("%s\n%s\n", metadataInstance.WavMetadata.Metadata.Title, metadataInstance.WavMetadata.Metadata.Artist)
 		}
 		fmt.Printf("WAV %02dKHz/%02dbit", metadataInstance.WavMetadata.SampleRate/1000, metadataInstance.WavMetadata.BitDepth)
+	case ".mp3":
+		if metadataInstance.nonWavMetadata.Title() == "" {
+			fmt.Printf("%s\n", playInstance.fileName)
+		} else {
+			fmt.Printf("%s\n%s\n", metadataInstance.nonWavMetadata.Title(), metadataInstance.nonWavMetadata.Artist())
+		}
+		// Get MP3 bitrate through (file size (bits)) / duration
+		samples := metadataInstance.mp3Decoder.Length() / 4
+		audioLength := samples / int64(metadataInstance.mp3Decoder.SampleRate())
+		bitrate := ((playInstance.Size * 8) / audioLength) / 1000
+
+		fmt.Printf("MP3 %02dkbps", bitrate)
 	default:
 		if metadataInstance.nonWavMetadata.Title() == "" {
 			fmt.Printf("%s\n", playInstance.fileName)
@@ -74,7 +89,6 @@ func printPlaybackStatus(playInstance Ctrl, metadataInstance metadata) {
 		// Display decimal if KHz value has a decimal value
 		if sampleFloat == float64(int(sampleFloat)) {
 			fmt.Printf("%s %.0fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
-
 		} else {
 			fmt.Printf("%s %.1fKHz/%02dbit", metadataInstance.nonWavMetadata.FileType(), sampleFloat, playInstance.Format.Precision*8)
 		}
@@ -163,6 +177,11 @@ func startPlayback(argsWithProg []string, preLoop bool) (Ctrl, metadata, chan bo
 	metadataInstance := new(metadata)
 	playInstance.fileName = fileNameRead
 	playInstance.fileExtension = fileExtension
+
+	fi, err := file.Stat()
+	check(err)
+
+	playInstance.Size = fi.Size()
 	playInstance.Streamer = streamerRead
 	playInstance.Format = formatRead
 
@@ -181,6 +200,11 @@ func startPlayback(argsWithProg []string, preLoop bool) (Ctrl, metadata, chan bo
 		}
 	default:
 		metadataInstance.nonWavMetadata = readNonWavMetadata(*file)
+		if fileExtension == ".mp3" {
+			var err error
+			metadataInstance.mp3Decoder, err = mp3fdecoder.NewDecoder(file)
+			check(err)
+		}
 	}
 
 	playInstance.Paused = false
